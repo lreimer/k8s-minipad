@@ -1,9 +1,14 @@
 package dev.ops.tools;
 
+import dev.ops.tools.k8s.K8sConfig;
+import dev.ops.tools.midi.LaunchpadColor;
 import dev.ops.tools.midi.LaunchpadDevice;
 import dev.ops.tools.midi.MidiSystemHandler;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 /**
  * Launchpad controller implementation handles logic for button events and colors.
@@ -13,14 +18,26 @@ public class K8sMinipadController extends LaunchpadDevice {
     private static final Logger LOGGER = LoggerFactory.getLogger(K8sMinipadController.class);
 
     private final MidiSystemHandler midiSystem;
+    private final KubernetesClient client;
+    private final K8sConfig config;
 
-    public K8sMinipadController(MidiSystemHandler midiSystem) {
+    private String namespace;
+
+    public K8sMinipadController(MidiSystemHandler midiSystem, KubernetesClient client, File configFile, String namespace) {
         this.midiSystem = midiSystem;
+        this.client = client;
+        this.config = K8sConfig.fromFile(configFile);
+        this.namespace = namespace;
     }
 
     public void initialize() {
+        LOGGER.info("Using K8s config {}", config);
         midiSystem.initialize(this);
         reset();
+
+        for (int i = 0; i < config.getNamespaces().size(); i++) {
+            top(i, LaunchpadColor.BRIGHT_AMBER);
+        }
     }
 
     @Override
@@ -35,10 +52,5 @@ public class K8sMinipadController extends LaunchpadDevice {
 
             int row = A_H_BUTTONS.indexOf(data1);
         }
-    }
-
-    @Override
-    public void close() {
-        super.close();
     }
 }

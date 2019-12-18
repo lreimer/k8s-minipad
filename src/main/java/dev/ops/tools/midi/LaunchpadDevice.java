@@ -41,6 +41,24 @@ public abstract class LaunchpadDevice implements Receiver {
         receiver.close();
     }
 
+    public void top(int col, LaunchpadColor color) {
+        int data1 = 104 + col;
+        try {
+            receiver.send(new ShortMessage(176, 0, data1, color.getValue()), -1);
+        } catch (InvalidMidiDataException e) {
+            LOGGER.warn("Could not send ShortMessage.", e);
+        }
+    }
+
+    public void right(int row, LaunchpadColor color) {
+        int data1 = A_H_BUTTONS.get(row);
+        try {
+            receiver.send(new ShortMessage(144, 0, data1, color.getValue()), -1);
+        } catch (InvalidMidiDataException e) {
+            LOGGER.warn("Could not send ShortMessage.", e);
+        }
+    }
+
     public void square(int row, int col, LaunchpadColor color) {
         int data1 = (row * 16) + col;
         try {
@@ -64,6 +82,7 @@ public abstract class LaunchpadDevice implements Receiver {
             for (int j = 0; j < 9; j++) {
                 square(i, j, LaunchpadColor.NONE);
             }
+            top(i, LaunchpadColor.NONE);
         }
     }
 }
