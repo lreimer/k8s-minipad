@@ -1,0 +1,52 @@
+[
+  {
+    "name": "com.sun.media.sound.MidiInDevice",
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
+  },
+  {
+    "name": "com.sun.media.sound.MidiInDeviceProvider",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "methods": [
+      {
+        "name": "nGetNumDevices",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "com.sun.media.sound.Platform",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "methods": [
+      {
+        "name": "loadLibraries",
+        "parameterTypes": []
+      },
+      {
+        "name": "readProperties",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "javax.sound.midi.MidiUnavailableException",
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
+  }
+]

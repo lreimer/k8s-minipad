@@ -1,0 +1,121 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'groovy'
+}
+
+repositories {
+    jcenter()
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
+dependencies {
+    implementation 'info.picocli:picocli:3.9.6'
+
+    compile 'org.slf4j:slf4j-api:1.7.26'
+    compile 'org.glassfish:jakarta.json:1.1.6'
+
+    // compileOnly ':svm:19.2.1'
+    // compileOnly 'org.graalvm.nativeimage:svm:19.3.0'
+
+    runtime 'org.slf4j:slf4j-simple:1.7.26'
+    runtime 'info.picocli:picocli-codegen:3.9.6'
+    runtime 'org.fusesource.jansi:jansi:1.18'
+}
+
+application {
+    mainClassName = 'dev.ops.tools.K8sMinipad'
+    applicationDefaultJvmArgs = ['-agentlib:native-image-agent=config-merge-dir=build/resources/main/META-INF/native-image']
+}
+
+task copyRuntimeLibs(type: Copy) {
+    into "$buildDir/libs"
+    from sourceSets.main.runtimeClasspath
+    include "*.jar"
+}
+
+assemble.finalizedBy copyRuntimeLibs
+
+task reflectionConfigGenerator(description: 'Generate reflection config', dependsOn: 'assemble', type: JavaExec) {
+    main = 'picocli.codegen.aot.graalvm.ReflectionConfigGenerator'
+    classpath = sourceSets.main.runtimeClasspath
+    args = ['dev.ops.tools.CiCdLaunchpad', '--output', 'build/reflect.json']
+}
+
+
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+
+task extendReflectJson {
+    doLast {
+        def reflectJson = file("$buildDir/reflect.json")
+        def json = new JsonSlurper().parseText(reflectJson.text)
+
+        json << getReflectInfo("java.util.ArrayList")
+        json << getReflectInfo("java.util.HashMap")
+
+        def extendedReflectJson = file("$buildDir/extended-reflect.json")
+        extendedReflectJson.write(new JsonBuilder(json).toPrettyString())
+    }
+}
+
+def getReflectInfo(String name) {
+    def info = [
+            name                   : name,
+            allDeclaredConstructors: true,
+            allPublicConstructors  : true,
+            allDeclaredMethods     : true,
+            allPublicMethods       : true,
+            fields                  : getFields(name)
+    ]
+    info
+}
+
+def getFields(String name) {
+    def fields = []
+
+    Class clazz = Class.forName(name)
+    def declaredFields = clazz.getDeclaredFields()
+    declaredFields.each {
+        fields << [name: it.name]
+    }
+
+    fields
+}
+
+reflectionConfigGenerator.finalizedBy extendReflectJson
+
+String getClasspath() {
+    'libs/' + file("$buildDir/libs").list()?.join(':libs/')
+}
+
+task graalNativeImage(description: 'Generate native image with GraalVM', dependsOn: 'reflectionConfigGenerator', type: Exec) {
+    workingDir "$buildDir"
+    commandLine = [
+            'native-image',
+            '-cp', getClasspath(),
+            //'-H:ReflectionConfigurationFiles=extended-reflect.json',
+            '-H:+ReportUnsupportedElementsAtRuntime',
+            '-H:+ReportExceptionStackTraces',
+            '-H:+AddAllCharsets',
+            '-H:+TraceClassInitialization',
+            '--initialize-at-run-time=com.sun.media.sound,org.fusesource.jansi.WindowsAnsiOutputStream',
+            '--no-server',
+            // '--static',
+            '--enable-http',
+            '--enable-https',
+            // '--force-fallback',
+            'dev.ops.tools.K8sMinipad',
+            'k8s-minipad'
+    ]
+}
+
+task copyEllipticCurveCrypto(type: Copy) {
+    from file(System.getenv("JAVA_HOME") + "/jre/lib/")
+    into "$buildDir"
+    include "libsunec.*"
+}
+
+graalNativeImage.finalizedBy copyEllipticCurveCrypto

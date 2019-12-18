@@ -1,0 +1,10 @@
+{
+  "resources": [
+    {
+      "pattern": "META-INF/services/javax.sound.midi.spi.MidiDeviceProvider"
+    },
+    {
+      "pattern": "org/slf4j/impl/StaticLoggerBinder.class"
+    }
+  ]
+}

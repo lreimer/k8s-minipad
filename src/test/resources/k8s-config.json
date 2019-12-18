@@ -1,0 +1,13 @@
+[
+  {
+    "namespace": "default",
+    "mode": "LABELS"
+  },
+  {
+    "namespace": "kube-system",
+    "mode": "MANUAL",
+    "deployments": [
+      "coredns"
+    ]
+  }
+]
