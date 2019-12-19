@@ -2,9 +2,11 @@ package dev.ops.tools.k8s;
 
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DoneableDeployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,10 +126,9 @@ public class K8sController implements Watcher<Deployment> {
         this.eventConsumer = consumer;
     }
 
-    public void refresh(K8sNamespace k8sNamespace, K8sDeployment k8sDeployment) {
-        LOGGER.info("Refresh deployment {}", k8sDeployment.getName());
-        Deployment deployment = client.apps().deployments().inNamespace(k8sNamespace.getName()).withName(k8sDeployment.getName()).get();
-        modifyDeployment(k8sNamespace, deployment);
-        eventConsumer.accept(k8sNamespace.getName());
+    public void scale(K8sNamespace k8SNamespace, K8sDeployment k8sDeployment, int replicas) {
+        LOGGER.info("Scaling Deployment {} to {} replicas.", k8sDeployment.getName(), replicas);
+        RollableScalableResource<Deployment, DoneableDeployment> deployment = client.apps().deployments().inNamespace(k8SNamespace.getName()).withName(k8sDeployment.getName());
+        deployment.scale(replicas);
     }
 }

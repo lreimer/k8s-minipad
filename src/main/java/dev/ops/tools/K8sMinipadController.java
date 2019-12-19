@@ -67,7 +67,20 @@ public class K8sMinipadController extends LaunchpadDevice {
                 K8sNamespace k8sNamespace = k8sController.getK8sModel().getNamespaceByName(namespace);
                 if (row < k8sNamespace.getDeployments().size()) {
                     K8sDeployment k8sDeployment = k8sNamespace.getDeployment(row);
-                    k8sController.refresh(k8sNamespace, k8sDeployment);
+                    k8sController.scale(k8sNamespace, k8sDeployment, 0);
+                }
+            } else {
+                // a square button has been pressed
+                LOGGER.info("Received MIDI event for Square button [command={},data1={},data2={}]", command, data1, data2);
+
+                int row = data1 / 16;
+                int col = data1 % 16;
+
+                K8sNamespace k8sNamespace = k8sController.getK8sModel().getNamespaceByName(namespace);
+                K8sDeployment k8sDeployment = k8sNamespace.getDeployment(row);
+                int replicas = k8sDeployment.getPods().size();
+                if (col + 1 != replicas) {
+                    k8sController.scale(k8sNamespace, k8sDeployment, col + 1);
                 }
             }
         }
@@ -102,7 +115,7 @@ public class K8sMinipadController extends LaunchpadDevice {
 
             clearRow(i);
             colorRow(i, colors);
-            right(i, LaunchpadColor.BRIGHT_AMBER);
+            right(i, LaunchpadColor.BRIGHT_RED);
         }
 
         // clear any unused rows
