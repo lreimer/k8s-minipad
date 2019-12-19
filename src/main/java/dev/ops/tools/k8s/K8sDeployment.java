@@ -1,15 +1,13 @@
 package dev.ops.tools.k8s;
 
 import io.fabric8.kubernetes.api.model.Pod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.json.JsonArray;
 import javax.json.JsonString;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.TreeMap;
 import java.util.function.Function;
 
 /**
@@ -17,10 +15,8 @@ import java.util.function.Function;
  */
 public class K8sDeployment {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(K8sDeployment.class);
-
     private final String name;
-    private final Map<String, String> pods = new HashMap<>();
+    private final Map<String, String> pods = new TreeMap<>();
 
     public K8sDeployment(String name) {
         this.name = name;

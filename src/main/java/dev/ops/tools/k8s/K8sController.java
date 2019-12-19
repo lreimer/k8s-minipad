@@ -2,7 +2,6 @@ package dev.ops.tools.k8s;
 
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
@@ -56,13 +55,6 @@ public class K8sController implements Watcher<Deployment> {
             Deployment deployment = client.apps().deployments().inNamespace(namespace.getName()).withName(deploymentName).get();
             PodList podList = client.pods().inNamespace(namespace.getName()).withLabelSelector(deployment.getSpec().getSelector()).list();
             k8sDeployment.setPodList(podList.getItems());
-        }
-    }
-
-    private void initializeDeployments(K8sNamespace namespace) {
-        DeploymentList list = client.apps().deployments().inNamespace(namespace.getName()).list();
-        for (Deployment deployment : list.getItems()) {
-            addDeployment(namespace, deployment);
         }
     }
 
@@ -130,5 +122,12 @@ public class K8sController implements Watcher<Deployment> {
 
     public void register(Consumer<String> consumer) {
         this.eventConsumer = consumer;
+    }
+
+    public void refresh(K8sNamespace k8sNamespace, K8sDeployment k8sDeployment) {
+        LOGGER.info("Refresh deployment {}", k8sDeployment.getName());
+        Deployment deployment = client.apps().deployments().inNamespace(k8sNamespace.getName()).withName(k8sDeployment.getName()).get();
+        modifyDeployment(k8sNamespace, deployment);
+        eventConsumer.accept(k8sNamespace.getName());
     }
 }

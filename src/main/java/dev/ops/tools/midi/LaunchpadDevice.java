@@ -75,12 +75,6 @@ public abstract class LaunchpadDevice implements Receiver {
         }
     }
 
-    protected void colorRow(int row, int count, LaunchpadColor color) {
-        for (int j = 0; j < count; j++) {
-            square(row, j, color);
-        }
-    }
-
     protected void colorRow(int row, List<LaunchpadColor> colors) {
         for (int j = 0; j < colors.size(); j++) {
             square(row, j, colors.get(j));

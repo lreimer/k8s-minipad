@@ -58,10 +58,18 @@ public class K8sMinipadController extends LaunchpadDevice {
             update();
 
         } else if (command == 144 && data2 == 127) {
-            // a A-H button has been pressed
-            LOGGER.info("Received MIDI event for A-H button [command={},data1={},data2={}]", command, data1, data2);
+            boolean isAH = A_H_BUTTONS.contains(data1);
+            if (isAH) {
+                // a A-H button has been pressed
+                LOGGER.info("Received MIDI event for A-H button [command={},data1={},data2={}]", command, data1, data2);
 
-            int row = A_H_BUTTONS.indexOf(data1);
+                int row = A_H_BUTTONS.indexOf(data1);
+                K8sNamespace k8sNamespace = k8sController.getK8sModel().getNamespaceByName(namespace);
+                if (row < k8sNamespace.getDeployments().size()) {
+                    K8sDeployment k8sDeployment = k8sNamespace.getDeployment(row);
+                    k8sController.refresh(k8sNamespace, k8sDeployment);
+                }
+            }
         }
     }
 
