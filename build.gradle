@@ -231,7 +231,6 @@ task graalNativeImage(description: 'Generate native image with GraalVM', depends
     commandLine = [
             'native-image',
             '-cp', getClasspath(),
-            //'-H:ReflectionConfigurationFiles=extended-reflect.json',
             '-H:+ReportUnsupportedElementsAtRuntime',
             '-H:+ReportExceptionStackTraces',
             '-H:+AddAllCharsets',
@@ -241,7 +240,7 @@ task graalNativeImage(description: 'Generate native image with GraalVM', depends
             // '--static',
             '--enable-http',
             '--enable-https',
-            // '--force-fallback',
+            '--force-fallback',
             'dev.ops.tools.K8sMinipad',
             'k8s-minipad'
     ]

@@ -39,6 +39,15 @@
     "allPublicMethods": true
   },
   {
+    "name": "org.glassfish.json.JsonProviderImpl",
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
+  },
+  {
     "name": "java.io.Closeable",
     "allDeclaredMethods": true
   },
