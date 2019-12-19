@@ -8,6 +8,10 @@ Visualise and manage K8s deployments and pods using a Novation Launchpad Mini MK
 $ ./gradlew clean ass
 
 $ ./gradlew run --args="-f src/test/resources/k8s-config.json"
+
+$ kubectl apply -f src/test/resources/busybox-minipad-enabled.yaml
+$ kubectl apply -f src/test/resources/nginx-minipad-enabled.yaml
+$ kubectl apply -f src/test/resources/nginx-minipad-disabled.yaml
 ```
 
 ## Maintainer
