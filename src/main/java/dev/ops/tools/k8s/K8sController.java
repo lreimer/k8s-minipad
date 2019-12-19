@@ -128,7 +128,8 @@ public class K8sController implements Watcher<Deployment> {
 
     public void scale(K8sNamespace k8SNamespace, K8sDeployment k8sDeployment, int replicas) {
         LOGGER.info("Scaling Deployment {} to {} replicas.", k8sDeployment.getName(), replicas);
-        RollableScalableResource<Deployment, DoneableDeployment> deployment = client.apps().deployments().inNamespace(k8SNamespace.getName()).withName(k8sDeployment.getName());
+        RollableScalableResource<Deployment, DoneableDeployment> deployment = client.apps().deployments()
+                .inNamespace(k8SNamespace.getName()).withName(k8sDeployment.getName());
         deployment.scale(replicas);
     }
 }
