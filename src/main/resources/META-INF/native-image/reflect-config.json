@@ -33,6 +33,12 @@
     "allPublicMethods": true
   },
   {
+    "name": "com.fasterxml.jackson.databind.util.ClassUtil",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
     "name": "java.io.Closeable",
     "allDeclaredMethods": true
   },

@@ -42,7 +42,7 @@ dependencies {
 
 application {
     mainClassName = 'dev.ops.tools.K8sMinipad'
-    applicationDefaultJvmArgs = ['-agentlib:native-image-agent=config-merge-dir=build/resources/main/META-INF/native-image']
+    // applicationDefaultJvmArgs = ['-agentlib:native-image-agent=config-merge-dir=build/resources/main/META-INF/native-image']
 }
 
 task copyRuntimeLibs(type: Copy) {
@@ -56,7 +56,7 @@ assemble.finalizedBy copyRuntimeLibs
 task reflectionConfigGenerator(description: 'Generate reflection config', dependsOn: 'assemble', type: JavaExec) {
     main = 'picocli.codegen.aot.graalvm.ReflectionConfigGenerator'
     classpath = sourceSets.main.runtimeClasspath
-    args = ['dev.ops.tools.CiCdLaunchpad', '--output', 'build/reflect.json']
+    args = ['dev.ops.tools.K8sMinipad', '--output', 'build/reflect.json']
 }
 
 
@@ -65,7 +65,7 @@ import groovy.json.JsonSlurper
 
 task extendReflectJson {
     doLast {
-        def reflectJson = file("$buildDir/reflect.json")
+        def reflectJson = file("$buildDir/resources/main/META-INF/native-image/reflect-config.json")
         def json = new JsonSlurper().parseText(reflectJson.text)
 
         json << getReflectInfo("io.fabric8.kubernetes.internal.KubernetesDeserializer")
@@ -191,10 +191,7 @@ task extendReflectJson {
         json << getReflectInfo("io.fabric8.kubernetes.api.model.apps.DeploymentStatus")
         json << getReflectInfo("io.fabric8.kubernetes.api.model.apps.DeploymentCondition")
 
-        json << getReflectInfo("java.util.ArrayList")
-        json << getReflectInfo("java.util.HashMap")
-
-        def extendedReflectJson = file("$buildDir/extended-reflect.json")
+        def extendedReflectJson = file("$buildDir/resources/main/META-INF/native-image/reflect-config.json")
         extendedReflectJson.write(new JsonBuilder(json).toPrettyString())
     }
 }
@@ -223,7 +220,7 @@ def getFields(String name) {
     fields
 }
 
-reflectionConfigGenerator.finalizedBy extendReflectJson
+processResources.finalizedBy extendReflectJson
 
 String getClasspath() {
     'libs/' + file("$buildDir/libs").list()?.join(':libs/')

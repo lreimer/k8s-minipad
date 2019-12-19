@@ -28,6 +28,18 @@ public enum LaunchpadColor {
         this.value = value;
     }
 
+    public static LaunchpadColor forStatus(String status) {
+        if ("Running".equalsIgnoreCase(status)) {
+            return BRIGHT_GREEN;
+        } else if ("Pending".equalsIgnoreCase(status) || "Starting".equalsIgnoreCase(status) || "ContainerCreating".equalsIgnoreCase(status)) {
+            return BRIGHT_YELLOW;
+        } else if ("Terminating".equalsIgnoreCase(status) || "Stopping".equalsIgnoreCase(status)) {
+            return BRIGHT_RED;
+        } else {
+            return NONE;
+        }
+    }
+
     public int getValue() {
         return value;
     }

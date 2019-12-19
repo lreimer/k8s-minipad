@@ -1,5 +1,6 @@
 package dev.ops.tools;
 
+import dev.ops.tools.k8s.K8sController;
 import dev.ops.tools.midi.MidiSystemHandler;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -37,12 +38,14 @@ class K8sMinipad implements Runnable {
         midiSystem.infos();
 
         KubernetesClient client = new DefaultKubernetesClient();
-        K8sMinipadController controller = new K8sMinipadController(midiSystem, client, configFile, namespace);
-        controller.initialize();
+        K8sController k8sController = new K8sController(client, configFile);
+
+        K8sMinipadController minipadController = new K8sMinipadController(midiSystem, k8sController, namespace);
+        minipadController.initialize();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             LOGGER.info("Shutdown K8s Minipad.");
-            controller.close();
+            minipadController.close();
             client.close();
             midiSystem.destroy();
         }));

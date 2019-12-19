@@ -1,14 +1,19 @@
 package dev.ops.tools;
 
-import dev.ops.tools.k8s.K8sConfig;
+import dev.ops.tools.k8s.K8sController;
+import dev.ops.tools.k8s.K8sDeployment;
+import dev.ops.tools.k8s.K8sModel;
+import dev.ops.tools.k8s.K8sNamespace;
 import dev.ops.tools.midi.LaunchpadColor;
 import dev.ops.tools.midi.LaunchpadDevice;
 import dev.ops.tools.midi.MidiSystemHandler;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Launchpad controller implementation handles logic for button events and colors.
@@ -18,26 +23,26 @@ public class K8sMinipadController extends LaunchpadDevice {
     private static final Logger LOGGER = LoggerFactory.getLogger(K8sMinipadController.class);
 
     private final MidiSystemHandler midiSystem;
-    private final KubernetesClient client;
-    private final K8sConfig config;
-
+    private final K8sController k8sController;
     private String namespace;
 
-    public K8sMinipadController(MidiSystemHandler midiSystem, KubernetesClient client, File configFile, String namespace) {
+    public K8sMinipadController(MidiSystemHandler midiSystem, K8sController k8sController, String namespace) {
         this.midiSystem = midiSystem;
-        this.client = client;
-        this.config = K8sConfig.fromFile(configFile);
+        this.k8sController = k8sController;
         this.namespace = namespace;
     }
 
     public void initialize() {
-        LOGGER.info("Using K8s config {}", config);
         midiSystem.initialize(this);
         reset();
+        update();
 
-        for (int i = 0; i < config.getNamespaces().size(); i++) {
-            top(i, LaunchpadColor.BRIGHT_AMBER);
-        }
+        k8sController.register(s -> {
+            if (Objects.equals(namespace, s)) {
+                update();
+            }
+        });
+        k8sController.initialize();
     }
 
     @Override
@@ -46,11 +51,55 @@ public class K8sMinipadController extends LaunchpadDevice {
             // a 1-8 button has been pressed
             LOGGER.info("Received MIDI event for 1-8 button [command={},data1={},data2={}]", command, data1, data2);
 
+            int index = data1 - 104;
+            this.namespace = k8sController.getK8sModel().getNamespace(index).getName();
+            LOGGER.info("Selected namespace {}", this.namespace);
+
+            update();
+
         } else if (command == 144 && data2 == 127) {
             // a A-H button has been pressed
             LOGGER.info("Received MIDI event for A-H button [command={},data1={},data2={}]", command, data1, data2);
 
             int row = A_H_BUTTONS.indexOf(data1);
+        }
+    }
+
+    private void update() {
+        updateNamespaceSelectors();
+        updateGrid();
+    }
+
+    private void updateNamespaceSelectors() {
+        K8sModel k8sModel = k8sController.getK8sModel();
+        for (int i = 0; i < k8sModel.getNamespaces().size(); i++) {
+            K8sNamespace ns = k8sModel.getNamespace(i);
+            if (Objects.equals(ns.getName(), namespace)) {
+                top(i, LaunchpadColor.BRIGHT_AMBER);
+            } else {
+                top(i, LaunchpadColor.DARK_AMBER);
+            }
+        }
+    }
+
+    private void updateGrid() {
+        K8sNamespace ns = k8sController.getK8sModel().getNamespaceByName(namespace);
+        int size = ns.getDeployments().size();
+        for (int i = 0; i < size && i < 8; i++) {
+            K8sDeployment deployment = ns.getDeployment(i);
+            LOGGER.info("Displaying Deployment {} at row {}", deployment.getName(), i);
+
+            Collection<String> status = deployment.getPods().values();
+            List<LaunchpadColor> colors = status.stream().map(LaunchpadColor::forStatus).collect(Collectors.toList());
+
+            clearRow(i);
+            colorRow(i, colors);
+            right(i, LaunchpadColor.BRIGHT_AMBER);
+        }
+
+        // clear any unused rows
+        for (int i = size; i < 8; i++) {
+            clearRow(i);
         }
     }
 }

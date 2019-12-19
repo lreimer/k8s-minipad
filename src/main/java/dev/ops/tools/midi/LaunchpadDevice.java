@@ -37,6 +37,7 @@ public abstract class LaunchpadDevice implements Receiver {
 
     @Override
     public void close() {
+        LOGGER.info("Closing Launchpad device.");
         reset();
         receiver.close();
     }
@@ -68,9 +69,21 @@ public abstract class LaunchpadDevice implements Receiver {
         }
     }
 
-    public void clear(int row) {
-        for (int j = 0; j < 8; j++) {
+    protected void clearRow(int row) {
+        for (int j = 0; j < 9; j++) {
             square(row, j, LaunchpadColor.NONE);
+        }
+    }
+
+    protected void colorRow(int row, int count, LaunchpadColor color) {
+        for (int j = 0; j < count; j++) {
+            square(row, j, color);
+        }
+    }
+
+    protected void colorRow(int row, List<LaunchpadColor> colors) {
+        for (int j = 0; j < colors.size(); j++) {
+            square(row, j, colors.get(j));
         }
     }
 

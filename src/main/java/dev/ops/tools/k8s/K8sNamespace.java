@@ -3,6 +3,7 @@ package dev.ops.tools.k8s;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
@@ -34,9 +35,17 @@ public class K8sNamespace {
         return deployments;
     }
 
+    public K8sDeployment getDeployment(int index) {
+        return deployments.get(index);
+    }
+
     public void setDeployments(List<K8sDeployment> deployments) {
         this.deployments.clear();
         this.deployments.addAll(deployments);
+    }
+
+    public void addDeployment(K8sDeployment k8sDeployment) {
+        deployments.add(k8sDeployment);
     }
 
     @Override
@@ -51,10 +60,10 @@ public class K8sNamespace {
     public static List<K8sNamespace> fromJson(JsonArray jsonArray) {
         return jsonArray.getValuesAs((Function<JsonObject, K8sNamespace>) jsonObject -> {
             String name = jsonObject.getString("namespace", "default");
-            Mode mode = Mode.valueOf(jsonObject.getString("mode", Mode.LABELS.name()));
+            Mode mode = Mode.valueOf(jsonObject.getString("mode", Mode.DYNAMIC.name()));
 
             K8sNamespace ns = new K8sNamespace(name, mode);
-            if (Mode.MANUAL == mode) {
+            if (Mode.STATIC == mode) {
                 List<K8sDeployment> deployments = K8sDeployment.fromJson(jsonObject.getJsonArray("deployments"));
                 ns.setDeployments(deployments);
             }
@@ -63,7 +72,23 @@ public class K8sNamespace {
         });
     }
 
+    public K8sDeployment getDeploymentByName(String name) {
+        K8sDeployment found = null;
+        for (K8sDeployment deployment : deployments) {
+            if (Objects.equals(deployment.getName(), name)) {
+                found = deployment;
+                break;
+            }
+        }
+        return found;
+    }
+
+    public void removeDeployment(String name) {
+        K8sDeployment deployment = getDeploymentByName(name);
+        deployments.remove(deployment);
+    }
+
     public enum Mode {
-        LABELS, MANUAL;
+        DYNAMIC, STATIC
     }
 }

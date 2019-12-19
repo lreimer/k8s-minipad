@@ -1,11 +1,12 @@
 [
   {
     "namespace": "default",
-    "mode": "LABELS"
+    "mode": "DYNAMIC",
+    "deployments": []
   },
   {
     "namespace": "kube-system",
-    "mode": "MANUAL",
+    "mode": "STATIC",
     "deployments": [
       "coredns"
     ]
