@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox-minipad-enabled
+  labels:
+    k8s-minipad/enabled: "true"
+spec:
+  selector:
+    matchLabels:
+      app: busybox-minipad-enabled
+  replicas: 8
+  template:
+    metadata:
+      labels:
+        app: busybox-minipad-enabled
+    spec:
+      containers:
+        - name: busybox
+          image: busybox:1.31.1
+          args:
+            - sleep
+            - "1000"
