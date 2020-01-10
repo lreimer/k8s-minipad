@@ -65,6 +65,7 @@ public class K8sController implements Watcher<Deployment> {
         boolean enabled = Boolean.parseBoolean(labels.getOrDefault(MINIPAD_ENABLED_LABEL, Boolean.FALSE.toString()));
         if (!enabled) {
             LOGGER.debug("Skipping Deployment {}, not minipad/enabled.", deployment.getMetadata().getName());
+            return;
         }
 
         PodList podList = client.pods().inNamespace(namespace.getName()).withLabelSelector(deployment.getSpec().getSelector()).list();
